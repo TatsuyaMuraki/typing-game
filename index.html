@@ -481,7 +481,7 @@
             <div class="kana" id="currentKana">---</div>
           </div>
           <div class="typed-display placeholder" id="typedDisplay" role="textbox" aria-readonly="true">
-            ここに入力内容が表示されます
+            入力内容
           </div>
         </div>
 
@@ -683,7 +683,7 @@
       const pending = state.pendingInput;
       if(!typed && !state.lastWrong && !pending){
         typedDisplay.classList.add("placeholder");
-        typedDisplay.textContent = "ここに入力内容が表示されます";
+        typedDisplay.textContent = "入力内容";
         return;
       }
       if(typed){
@@ -922,6 +922,29 @@
       }
     }
 
+    function handleBackspaceKey(){
+      if(!state.startedAt || state.finished) return false;
+      if(state.pendingInput){
+        state.pendingInput = state.pendingInput.slice(0, -1);
+        renderTypedDisplay();
+        return true;
+      }
+      if(state.lastWrong){
+        state.lastWrong = false;
+        state.lastWrongChar = "";
+        renderWordProgress();
+        renderTypedDisplay();
+        return true;
+      }
+      if(state.charIdx > 0){
+        state.charIdx = Math.max(0, state.charIdx - 1);
+        renderWordProgress();
+        renderTypedDisplay();
+        return true;
+      }
+      return false;
+    }
+
     function finish(){
       if(state.finished) return;
       state.finished = true;
@@ -950,6 +973,16 @@
       inputField.addEventListener("focus", handleInputFocus);
       inputField.addEventListener("compositionupdate", handleInput);
       inputField.addEventListener("compositionend", handleInput);
+      inputField.addEventListener("keydown", (e) => {
+        if(e.key === "Backspace" && !e.isComposing){
+          if(inputField.value.length){
+            return;
+          }
+          if(handleBackspaceKey()){
+            e.preventDefault();
+          }
+        }
+      });
     }
     if(wordDisplay){
       ["click","touchend"].forEach(evt => {
