@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>フルーツ・タイピング（3問クリア・タイムアタック）</title>
+  <title>フルーツ・タイピング（10問クリア・タイムアタック）</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -13,6 +13,7 @@
       --accent: #22c55e;
       --brand: #60a5fa;
       --bar: rgba(148,163,184,.25);
+      --app-vh: 100vh;
     }
     * { box-sizing: border-box; }
     body {
@@ -22,7 +23,12 @@
         "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
       color: var(--ink);
     }
-    .wrap { max-width: 880px; margin: 40px auto; padding: 24px; }
+    .wrap {
+      max-width: 880px;
+      margin: 40px auto;
+      padding: 24px;
+      min-height: calc(var(--app-vh, 100vh) - 40px);
+    }
     .card {
       position: relative;
       background: rgba(17,24,39,.82);
@@ -55,6 +61,11 @@
       flex-wrap: wrap;
       gap: 12px;
       align-items: center;
+    }
+    .status-block {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
     }
     .stat {
       background: #0b1020;
@@ -298,10 +309,23 @@
     }
 
     @media (max-width: 640px){
-      .wrap { padding: 16px; }
+      .wrap {
+        padding: 16px;
+        min-height: calc(var(--app-vh, 100vh) - 16px);
+      }
       .card { padding: 22px; }
       .runner { width: 110px; }
       .marker svg { width: 54px; height: 54px; }
+      .status-block {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: rgba(15,23,42,.92);
+        backdrop-filter: blur(10px);
+        padding: 12px 0 14px;
+        border-bottom: 1px solid rgba(148,163,184,.15);
+      }
+      .progress-area { margin: 8px 0 0; }
     }
   </style>
 </head>
@@ -309,56 +333,65 @@
   <div class="wrap">
     <div class="card">
       <div class="game-screen" id="gameScreen">
-        <h1>フルーツ・タイピング <span class="badge">3問連続クリアのタイムを計測</span></h1>
+      <h1>フルーツ・タイピング <span class="badge">10問連続クリアのタイムを計測</span></h1>
 
-        <div class="row" id="stats">
-          <div class="stat">
-            <div class="label">経過時間</div>
-            <div class="val" id="elapsed">0.0s</div>
-          </div>
-          <div class="stat">
-            <div class="label">クリア数</div>
-            <div class="val"><span id="cleared">0</span> / 3</div>
-          </div>
-        </div>
-
-        <div class="progress-area">
-          <div class="marathon" aria-label="3区間のマラソントラック">
-            <div class="marker">
-              <svg viewBox="0 0 64 64" role="img" aria-label="スタート地点">
-                <rect x="10" y="10" width="6" height="46" fill="#38bdf8"></rect>
-                <rect x="48" y="10" width="6" height="46" fill="#38bdf8"></rect>
-                <rect x="16" y="10" width="32" height="14" rx="4" fill="#22c55e"></rect>
-                <path d="M16 26 L48 26" stroke="#38bdf8" stroke-width="2"></path>
-              </svg>
-              <span>スタート</span>
+        <div class="status-block">
+          <div class="row" id="stats">
+            <div class="stat">
+              <div class="label">経過時間</div>
+              <div class="val" id="elapsed">0.0s</div>
             </div>
-            <div class="track">
-              <div class="runner-lane">
-                <div class="runner paused" id="runner" aria-hidden="true">
-                  <svg viewBox="0 0 80 60">
-                    <circle cx="48" cy="12" r="8"></circle>
-                    <path d="M32 54 L42 32 L32 26" />
-                    <path d="M42 32 L56 42" />
-                    <path d="M42 32 L30 40" />
-                    <path d="M42 20 L28 28" />
-                    <path d="M42 20 L56 24" />
-                  </svg>
+            <div class="stat">
+              <div class="label">クリア数</div>
+              <div class="val"><span id="cleared">0</span> / 10</div>
+            </div>
+          </div>
+
+          <div class="progress-area">
+            <div class="marathon" aria-label="10区間のマラソントラック">
+              <div class="marker">
+                <svg viewBox="0 0 64 64" role="img" aria-label="スタート地点">
+                  <rect x="10" y="10" width="6" height="46" fill="#38bdf8"></rect>
+                  <rect x="48" y="10" width="6" height="46" fill="#38bdf8"></rect>
+                  <rect x="16" y="10" width="32" height="14" rx="4" fill="#22c55e"></rect>
+                  <path d="M16 26 L48 26" stroke="#38bdf8" stroke-width="2"></path>
+                </svg>
+                <span>スタート</span>
+              </div>
+              <div class="track">
+                <div class="runner-lane">
+                  <div class="runner paused" id="runner" aria-hidden="true">
+                    <svg viewBox="0 0 80 60">
+                      <circle cx="48" cy="12" r="8"></circle>
+                      <path d="M32 54 L42 32 L32 26" />
+                      <path d="M42 32 L56 42" />
+                      <path d="M42 32 L30 40" />
+                      <path d="M42 20 L28 28" />
+                      <path d="M42 20 L56 24" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="progress slots" id="progress" aria-label="クリア状況（10区間）">
+                  <span class="slot"></span>
+                  <span class="slot"></span>
+                  <span class="slot"></span>
+                  <span class="slot"></span>
+                  <span class="slot"></span>
+                  <span class="slot"></span>
+                  <span class="slot"></span>
+                  <span class="slot"></span>
+                  <span class="slot"></span>
+                  <span class="slot"></span>
                 </div>
               </div>
-              <div class="progress slots" id="progress" aria-label="クリア状況（3区間）">
-                <span class="slot"></span>
-                <span class="slot"></span>
-                <span class="slot"></span>
+              <div class="marker">
+                <svg viewBox="0 0 64 64" role="img" aria-label="ゴール">
+                  <rect x="14" y="8" width="6" height="48" fill="#fbbf24"></rect>
+                  <path d="M20 10 L50 10 L42 22 L50 34 L20 34 Z" fill="#f43f5e" opacity=".9"></path>
+                  <path d="M20 10 L36 10 L28 22 L36 34 L20 34 Z" fill="#fef3c7" opacity=".8"></path>
+                </svg>
+                <span>ゴール</span>
               </div>
-            </div>
-            <div class="marker">
-              <svg viewBox="0 0 64 64" role="img" aria-label="ゴール">
-                <rect x="14" y="8" width="6" height="48" fill="#fbbf24"></rect>
-                <path d="M20 10 L50 10 L42 22 L50 34 L20 34 Z" fill="#f43f5e" opacity=".9"></path>
-                <path d="M20 10 L36 10 L28 22 L36 34 L20 34 Z" fill="#fef3c7" opacity=".8"></path>
-              </svg>
-              <span>ゴール</span>
             </div>
           </div>
         </div>
@@ -373,6 +406,12 @@
           lang="ja"
           inputmode="kana"
           autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          enterkeyhint="next"
+          data-gramm="false"
+          data-gramm_editor="false"
           placeholder="例：りんご → りんご（日本語入力モードで／変換不要）"
           disabled
         />
@@ -392,11 +431,11 @@
         <div class="intro-content">
           <span class="badge">タイムアタック / ひらがな入力</span>
           <h2>フルーツ・タイピング</h2>
-          <p>ひらがなで表示されるフルーツ名を3問連続で正解し、タイムを競うゲームです。</p>
+          <p>ひらがなで表示されるフルーツ名を10問連続で正解し、タイムを競うゲームです。</p>
           <ul class="steps">
             <li>「スタート」ボタン or Enterキーでカウントダウン開始</li>
             <li>表示されたひらがなをそのまま入力（変換不要）</li>
-            <li>正解するたびにランナーが進み、3問でゴール！</li>
+            <li>正解するたびにランナーが進み、10問でゴール！</li>
           </ul>
           <button class="primary" id="btnIntroStart">スタート（EnterキーでもOK）</button>
           <div class="ime-note">PCでも日本語入力（ひらがな）にしてから始めてください。</div>
@@ -435,8 +474,10 @@
       { kana: "いちじく" }
     ];
 
-    const GOAL_COUNT = 3;
-    const RUNNER_POSITIONS = ["0%", "35%", "70%", "100%"];
+    const GOAL_COUNT = 10;
+    const RUNNER_POSITIONS = Array.from({ length: GOAL_COUNT + 1 }, (_, idx) =>
+      `${(idx / GOAL_COUNT) * 100}%`
+    );
     const state = {
       words: [],
       idx: 0,
@@ -454,6 +495,8 @@
 
     const introScreen = $("#introScreen");
     const btnIntroStart = $("#btnIntroStart");
+    const inputField = $("#input");
+    const narrowScreen = window.matchMedia("(max-width: 768px)");
 
     function shuffle(arr){
       const a = arr.slice();
@@ -462,6 +505,54 @@
         [a[i],a[j]]=[a[j],a[i]];
       }
       return a;
+    }
+
+    function focusInput(preventScroll = false){
+      const field = inputField;
+      if(!field || field.disabled) return;
+      try {
+        if(preventScroll){
+          field.focus({ preventScroll: true });
+        } else {
+          field.focus();
+        }
+      } catch {
+        field.focus();
+      }
+    }
+
+    function clearInputField(options = {}){
+      const { immediate = false, blurFirst = false, refocus = false } = options;
+      const field = inputField;
+      if(!field) return;
+      if(blurFirst){
+        field.blur();
+      }
+      const exec = () => {
+        field.value = "";
+        try { field.setSelectionRange(0,0); } catch {}
+        field.dispatchEvent(new Event("input"));
+        if(refocus){
+          focusInput(true);
+        }
+      };
+      if(immediate){
+        exec();
+      } else {
+        requestAnimationFrame(exec);
+      }
+    }
+
+    function updateViewportHeight(){
+      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      document.documentElement.style.setProperty("--app-vh", `${vh}px`);
+    }
+
+    function handleInputFocus(){
+      if(!narrowScreen.matches) return;
+      setTimeout(() => {
+        inputField?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 80);
     }
 
     function ensureWordPool(){
@@ -536,7 +627,7 @@
       state.startedAt = null;
       state.finished = false;
       state.correct = 0;
-      $("#input").value = "";
+      clearInputField({ immediate: true, blurFirst: true });
       $("#input").disabled = true;
       $("#btnRestart").disabled = true;
       updateProgress();
@@ -556,7 +647,7 @@
       state.startedAt = Date.now();
       state.timerId = setInterval(tick, 100);
       $("#input").disabled = false;
-      $("#input").focus();
+      focusInput(true);
       $("#btnRestart").disabled = false;
       setRunnerState();
     }
@@ -595,7 +686,7 @@
     function handleCorrect(){
       state.correct++;
       state.idx++;
-      $("#input").value = "";
+      clearInputField({ blurFirst: true, refocus: true });
       updateProgress();
       updateRunnerPosition();
       if(state.correct >= GOAL_COUNT){
@@ -624,17 +715,29 @@
       setRunnerState();
       updateRunnerPosition();
       const total = state.startedAt ? fmt((Date.now() - state.startedAt)/1000, 1) : "0.0";
-      setTimeout(()=>alert(`🏁 3問クリア！タイム: ${total}s`), 80);
+      setTimeout(()=>alert(`🏁 10問クリア！タイム: ${total}s`), 80);
     }
 
-    btnIntroStart.addEventListener("click", requestStart);
+    updateViewportHeight();
+    window.addEventListener("resize", updateViewportHeight);
+    if(window.visualViewport){
+      window.visualViewport.addEventListener("resize", updateViewportHeight);
+    }
+
+    if(btnIntroStart){
+      btnIntroStart.addEventListener("click", requestStart);
+    }
     $("#btnRestart").addEventListener("click", () => init(true));
-    $("#input").addEventListener("input", handleInput);
-    $("#input").addEventListener("keydown", (e) => {
-      if(e.key === "Enter"){
-        e.preventDefault();
-      }
-    });
+    if(inputField){
+      inputField.addEventListener("input", handleInput);
+      inputField.addEventListener("keydown", (e) => {
+        if(e.key === "Enter"){
+          e.preventDefault();
+        }
+      });
+      inputField.addEventListener("focus", handleInputFocus);
+      inputField.addEventListener("compositionend", handleInput);
+    }
     document.addEventListener("keydown", (e) => {
       if(e.key === "Enter" && !e.isComposing){
         if(!state.startedAt && !state.countdownActive && !state.finished){
