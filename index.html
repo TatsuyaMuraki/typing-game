@@ -502,13 +502,6 @@
             disabled
           />
         </div>
-        <div class="hint">
-          PCでもスマホでも日本語入力（ひらがな）に切り替えて、表示されたひらがなをそのまま打ちましょう。
-        </div>
-        <div class="start-hint">
-          Enterキーでもカウントダウンを開始できます。
-        </div>
-
         <div class="controls">
           <button id="btnRestart" disabled>リスタート</button>
         </div>
@@ -584,12 +577,27 @@
     const fmt = (n, digits = 1) =>
       (Math.round(n * Math.pow(10, digits)) / Math.pow(10, digits)).toFixed(digits);
 
-    const introScreen = $("#introScreen");
-    const btnIntroStart = $("#btnIntroStart");
-    const inputField = $("#input");
+    const els = {
+      intro: $("#introScreen"),
+      btnIntro: $("#btnIntroStart"),
+      input: $("#input"),
+      wordDisplay: document.querySelector(".word-display"),
+      typedDisplay: $("#typedDisplay"),
+      runner: $("#runner"),
+      slots: Array.from(document.querySelectorAll(".progress .slot")),
+      elapsed: $("#elapsed"),
+      cleared: $("#cleared"),
+      countdown: $("#countdown"),
+      restart: $("#btnRestart"),
+      currentKana: $("#currentKana"),
+    };
+
+    const introScreen = els.intro;
+    const btnIntroStart = els.btnIntro;
+    const inputField = els.input;
     const narrowScreen = window.matchMedia("(max-width: 768px)");
-    const wordDisplay = document.querySelector(".word-display");
-    const typedDisplay = $("#typedDisplay");
+    const wordDisplay = els.wordDisplay;
+    const typedDisplay = els.typedDisplay;
 
     function shuffle(arr){
       const a = arr.slice();
@@ -649,11 +657,12 @@
       }, 80);
     }
 
+    const getCurrentChars = () => Array.from(state.words[state.idx]?.kana || "");
+
     function renderWordProgress(){
-      const box = $("#currentKana");
+      const box = els.currentKana;
       if(!box) return;
-      const word = state.words[state.idx]?.kana || "";
-      const chars = Array.from(word);
+      const chars = getCurrentChars();
       box.innerHTML = "";
       if(!chars.length){
         box.textContent = "---";
@@ -678,8 +687,8 @@
       if(!typedDisplay) return;
       typedDisplay.innerHTML = "";
       typedDisplay.classList.remove("placeholder");
-      const word = state.words[state.idx]?.kana || "";
-      const typed = word.slice(0, state.charIdx);
+      const chars = getCurrentChars();
+      const typed = chars.length ? chars.slice(0, state.charIdx).join("") : "";
       const pending = state.pendingInput;
       if(!typed && !state.lastWrong && !pending){
         typedDisplay.classList.add("placeholder");
@@ -723,14 +732,16 @@
     }
 
     function updateProgress(){
-      $("#cleared").textContent = state.correct;
-      document.querySelectorAll(".progress .slot").forEach((slot, idx) => {
+      if(els.cleared){
+        els.cleared.textContent = state.correct;
+      }
+      els.slots.forEach((slot, idx) => {
         slot.classList.toggle("filled", idx < state.correct);
       });
     }
 
     function updateRunnerPosition(){
-      const runner = $("#runner");
+      const runner = els.runner;
       if(!runner) return;
       const idx = Math.min(state.correct, RUNNER_POSITIONS.length - 1);
       runner.style.left = RUNNER_POSITIONS[idx];
@@ -738,7 +749,9 @@
 
     function updateStats(){
       const elapsed = state.startedAt ? Date.now() - state.startedAt : 0;
-      $("#elapsed").textContent = fmt(elapsed / 1000, 1) + "s";
+      if(els.elapsed){
+        els.elapsed.textContent = fmt(elapsed / 1000, 1) + "s";
+      }
     }
 
     function setRunnerState(){
@@ -759,7 +772,7 @@
       state.countdownTimeouts.forEach((id)=>clearTimeout(id));
       state.countdownTimeouts = [];
       state.countdownActive = false;
-      const overlay = $("#countdown");
+      const overlay = els.countdown;
       overlay.classList.remove("show");
       overlay.textContent = "";
     }
@@ -787,8 +800,8 @@
       state.lastWrongChar = "";
       state.pendingInput = "";
       clearInputField({ immediate: true });
-      $("#input").disabled = true;
-      $("#btnRestart").disabled = true;
+      if(inputField) inputField.disabled = true;
+      if(els.restart) els.restart.disabled = true;
       updateProgress();
       updateStats();
       updateRunnerPosition();
@@ -805,9 +818,9 @@
       if(state.startedAt) return;
       state.startedAt = Date.now();
       state.timerId = setInterval(tick, 100);
-      $("#input").disabled = false;
+      if(inputField) inputField.disabled = false;
       focusInput(true);
-      $("#btnRestart").disabled = false;
+      if(els.restart) els.restart.disabled = false;
       setRunnerState();
     }
 
@@ -815,7 +828,7 @@
       if(state.countdownActive || state.startedAt || state.finished) return;
       state.countdownActive = true;
       if(btnIntroStart) btnIntroStart.disabled = true;
-      const overlay = $("#countdown");
+      const overlay = els.countdown;
       const steps = ["3","2","1"];
       overlay.textContent = "";
       overlay.classList.add("show");
@@ -899,8 +912,7 @@
     }
 
     function attemptChar(ch){
-      const current = state.words[state.idx] || { kana: "" };
-      const chars = Array.from(current.kana);
+      const chars = getCurrentChars();
       const targetChar = chars[state.charIdx];
       if(!targetChar) return;
       if(ch === targetChar){
@@ -950,7 +962,7 @@
       state.finished = true;
       clearInterval(state.timerId);
       state.timerId = null;
-      $("#input").disabled = true;
+      if(inputField) inputField.disabled = true;
       updateStats();
       setRunnerState();
       updateRunnerPosition();
@@ -967,7 +979,9 @@
     if(btnIntroStart){
       btnIntroStart.addEventListener("click", requestStart);
     }
-    $("#btnRestart").addEventListener("click", () => init(true));
+    if(els.restart){
+      els.restart.addEventListener("click", () => init(true));
+    }
     if(inputField){
       inputField.addEventListener("input", handleInput);
       inputField.addEventListener("focus", handleInputFocus);
