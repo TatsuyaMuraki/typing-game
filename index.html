@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>フルーツ・タイピング（1分）</title>
+  <style>
+    :root {
+      --bg: #0f172a;        /* slate-900 */
+      --panel: #111827;     /* gray-900 */
+      --ink: #e5e7eb;       /* gray-200 */
+      --muted: #9ca3af;     /* gray-400 */
+      --accent: #22c55e;    /* green-500 */
+      --danger: #f43f5e;    /* rose-500 */
+      --brand: #60a5fa;     /* blue-400 */
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background:linear-gradient(180deg,#0b1220,#0f172a 40%,#0b1220); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif; color:var(--ink); }
+    .wrap { max-width: 880px; margin: 40px auto; padding: 24px; }
+    .card { background:rgba(17,24,39,.7); border:1px solid rgba(148,163,184,.15); box-shadow: 0 10px 30px rgba(0,0,0,.35); border-radius: 20px; padding: 24px; }
+    h1 { margin: 0 0 8px; font-weight: 800; letter-spacing: .2px; font-size: clamp(22px, 3.6vw, 32px); }
+    .sub { color: var(--muted); margin-bottom: 20px; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .stat { background: #0b1020; border:1px solid rgba(148,163,184,.12); border-radius: 12px; padding: 12px 14px; min-width: 110px; text-align: center; }
+    .stat .label { font-size: 12px; color: var(--muted); }
+    .stat .val { font-size: 22px; font-weight: 700; margin-top: 2px; }
+    .words { margin: 18px 0; padding: 18px; background: #0a0f1d; border:1px dashed rgba(148,163,184,.25); border-radius: 14px; min-height: 76px; display: flex; align-items:center; gap: 18px; flex-wrap: wrap; }
+    .word { font-size: clamp(20px, 3.2vw, 28px); opacity:.55; }
+    .word.current { opacity:1; font-weight: 800; color: #f8fafc; text-decoration: underline; text-decoration-thickness: 6px; text-underline-offset: 10px; }
+    .word.upcoming { opacity:.5; }
+    .word.past.correct { color: var(--accent); opacity: .9; }
+    .word.past.wrong { color: var(--danger); opacity: .9; }
+
+    input[type="text"] { width: 100%; padding: 14px 16px; font-size: 18px; color: #0b1220; background: #eef2ff; border: none; border-radius: 12px; outline: none; }
+    input[disabled] { opacity:.6; }
+
+    .controls { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+    button { padding: 10px 14px; border-radius: 12px; border:1px solid rgba(148,163,184,.22); background:#0b1220; color: var(--ink); cursor: pointer; font-weight: 700; }
+    button.primary { background: linear-gradient(180deg,#2563eb,#1d4ed8); border-color: transparent; }
+    button:disabled { opacity:.6; cursor: not-allowed; }
+
+    .hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+    .footer { margin-top: 24px; color: var(--muted); font-size: 13px; display:flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .badge { background: rgba(96,165,250,.15); color:#93c5fd; padding: 4px 8px; border-radius: 999px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>フルーツ・タイピング <span class="badge">1分WPM</span></h1>
+      <div class="sub">ランダムな果物名をタイプ。<strong>1分間</strong>で何語正しく入力できるかを競います。<br>スペース/Enterで次の単語へ。開始は <strong>最初のキー入力</strong> または「スタート」。</div>
+
+      <div class="row" id="stats">
+        <div class="stat"><div class="label">残り時間</div><div class="val" id="time">60.0s</div></div>
+        <div class="stat"><div class="label">WPM（正打/分）</div><div class="val" id="wpm">0.0</div></div>
+        <div class="stat"><div class="label">正解 / 試行</div><div class="val"><span id="correct">0</span> / <span id="attempted">0</span></div></div>
+        <div class="stat"><div class="label">正確率</div><div class="val" id="acc">0%</div></div>
+      </div>
+
+      <div class="words" id="words"></div>
+
+      <input id="input" type="text" inputmode="latin" autocomplete="off" placeholder="ここにタイプ（英字・半角推奨 / IMEオフ推奨）" />
+      <div class="hint">日本語IMEが有効だと判定がズレやすいです。英字（A/半角）でプレイしてください。</div>
+
+      <div class="controls">
+        <button class="primary" id="btnStart">スタート</button>
+        <button id="btnRestart" disabled>リスタート</button>
+        <button id="btnShuffle">単語入れ替え</button>
+      </div>
+
+      <div class="footer">
+        <div>単語リスト: フルーツ（英語）</div>
+        <div>拡張アイデア：難易度レベル、スコア保存、和名モード、オンライン対戦など</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== 単語リスト（英語フルーツ） =====
+    const FRUITS = [
+      "apple","apricot","avocado","banana","blackberry","blueberry","cherry","coconut","cranberry","date","dragonfruit","durian","fig","gooseberry","grape","grapefruit","guava","jackfruit","kiwi","kumquat","lemon","lime","lychee","mango","melon","nectarine","olive","orange","papaya","passionfruit","peach","pear","persimmon","pineapple","plum","pomegranate","pomelo","quince","raspberry","starfruit","strawberry","tangerine","watermelon"
+    ];
+
+    // ===== 状態 =====
+    const state = {
+      words: [],
+      idx: 0,
+      startedAt: null,  // ms
+      finished: false,
+      timerId: null,
+      duration: 60_000, // 60s
+      correct: 0,
+      attempted: 0,
+    };
+
+    // ===== ユーティリティ =====
+    const $ = (sel) => document.querySelector(sel);
+    const fmt = (n, digits=1) => (Math.round(n * Math.pow(10, digits)) / Math.pow(10, digits)).toFixed(digits);
+    function shuffle(arr){
+      const a = arr.slice();
+      for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+      return a;
+    }
+
+    // ===== 描画 =====
+    function renderWords(){
+      const box = $("#words");
+      box.innerHTML = "";
+      const start = Math.max(0, state.idx - 4);
+      const end = Math.min(state.words.length, state.idx + 8);
+      for(let i=start;i<end;i++){
+        const span = document.createElement("span");
+        span.className = "word";
+        span.textContent = state.words[i];
+        if(i < state.idx){ span.classList.add("past"); }
+        if(i === state.idx){ span.classList.add("current"); }
+        if(i > state.idx){ span.classList.add("upcoming"); }
+        box.appendChild(span);
+      }
+    }
+
+    function updateStats(){
+      const now = Date.now();
+      const elapsed = state.startedAt ? now - state.startedAt : 0;
+      const remain = Math.max(0, state.duration - elapsed);
+      const minutes = (elapsed / 60000);
+      const wpm = minutes > 0 ? (state.correct / minutes) : 0;
+      $("#time").textContent = fmt(remain/1000, 1) + "s";
+      $("#wpm").textContent = fmt(wpm, 1);
+      $("#correct").textContent = state.correct;
+      $("#attempted").textContent = state.attempted;
+      $("#acc").textContent = (state.attempted ? Math.round(state.correct/state.attempted*100) : 0) + "%";
+    }
+
+    function tick(){
+      updateStats();
+      if(Date.now() - state.startedAt >= state.duration){
+        finish();
+      }
+    }
+
+    // ===== ゲーム制御 =====
+    function init(words = FRUITS){
+      state.words = shuffle(words).concat(shuffle(words)); // 足りなくならないよう多めに
+      state.idx = 0;
+      state.startedAt = null;
+      state.finished = false;
+      state.correct = 0;
+      state.attempted = 0;
+      clearInterval(state.timerId);
+      state.timerId = null;
+      $("#input").value = "";
+      $("#input").disabled = false;
+      $("#btnRestart").disabled = true;
+      renderWords();
+      updateStats();
+      $("#input").focus();
+    }
+
+    function start(){
+      if(state.startedAt || state.finished) return;
+      state.startedAt = Date.now();
+      state.timerId = setInterval(tick, 100);
+      $("#btnRestart").disabled = false;
+    }
+
+    function submitCurrent(){
+      if(state.finished) return;
+      if(!state.startedAt) start();
+      const target = state.words[state.idx] || "";
+      const typed = $("#input").value.trim().toLowerCase();
+      const ok = typed === target.toLowerCase();
+      state.attempted++;
+      if(ok) state.correct++;
+      // マーク更新（直前の単語に正誤色付け）
+      const box = $("#words");
+      const all = [...box.querySelectorAll('.word')];
+      const currentEl = all.find(el => el.classList.contains('current'));
+      if(currentEl){
+        currentEl.classList.remove('current');
+        currentEl.classList.remove('upcoming');
+        currentEl.classList.add('past');
+        currentEl.classList.add(ok ? 'correct' : 'wrong');
+      }
+      state.idx++;
+      $("#input").value = "";
+      renderWords();
+      updateStats();
+    }
+
+    function finish(){
+      if(state.finished) return;
+      state.finished = true;
+      clearInterval(state.timerId);
+      state.timerId = null;
+      $("#input").disabled = true;
+      updateStats();
+      // 末尾メッセージ
+      const msg = `\uD83C\uDF89 結果: WPM ${$("#wpm").textContent}, 正解 ${state.correct}/${state.attempted} (正確率 ${$("#acc").textContent})`;
+      $("#time").textContent = "0.0s";
+      setTimeout(()=>alert(msg), 50);
+    }
+
+    // ===== イベント =====
+    $("#btnStart").addEventListener('click', () => { if(!state.startedAt){ start(); $("#input").focus(); }});
+    $("#btnRestart").addEventListener('click', () => init());
+    $("#btnShuffle").addEventListener('click', () => { init(shuffle(FRUITS)); });
+
+    $("#input").addEventListener('keydown', (e) => {
+      if(e.key === ' ' || e.key === 'Enter'){
+        e.preventDefault();
+        submitCurrent();
+      }
+    });
+
+    // ページ起動
+    init();
+  </script>
+</body>
+</html>
