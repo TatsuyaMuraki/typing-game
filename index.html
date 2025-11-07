@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>フルーツ・タイピング（3問クリアのタイムアタック）</title>
+  <title>フルーツ・タイピング（3問クリア・タイムアタック）</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -11,7 +11,6 @@
       --ink: #e5e7eb;
       --muted: #94a3b8;
       --accent: #22c55e;
-      --danger: #f43f5e;
       --brand: #60a5fa;
       --bar: rgba(148,163,184,.25);
     }
@@ -23,24 +22,21 @@
         "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
       color: var(--ink);
     }
-    .wrap { max-width: 860px; margin: 40px auto; padding: 24px; }
+    .wrap { max-width: 880px; margin: 40px auto; padding: 24px; }
     .card {
-      background: rgba(17,24,39,.78);
+      position: relative;
+      background: rgba(17,24,39,.8);
       border: 1px solid rgba(148,163,184,.15);
       box-shadow: 0 20px 40px rgba(0,0,0,.35);
       border-radius: 24px;
       padding: 32px;
+      overflow: hidden;
     }
     h1 {
-      margin: 0 0 10px;
+      margin: 0 0 12px;
       font-weight: 800;
       font-size: clamp(22px, 3.6vw, 34px);
       letter-spacing: .2px;
-    }
-    .sub {
-      color: var(--muted);
-      margin-bottom: 24px;
-      line-height: 1.6;
     }
     .badge {
       background: rgba(96,165,250,.15);
@@ -48,6 +44,11 @@
       padding: 4px 10px;
       border-radius: 999px;
       font-size: 13px;
+    }
+    .sub {
+      color: var(--muted);
+      margin-bottom: 24px;
+      line-height: 1.6;
     }
     .row {
       display: flex;
@@ -69,46 +70,41 @@
     .val {
       font-size: 24px;
       font-weight: 700;
-      margin-top: 2px;
+      margin-top: 4px;
     }
 
     .progress-area {
-      margin: 28px 0 18px;
+      margin: 30px 0 18px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 20px;
       align-items: center;
     }
-    .runner {
-      width: 140px;
-      animation: runner-bounce 1s ease-in-out infinite;
-    }
-    .runner.paused {
-      animation-play-state: paused;
-      opacity: .65;
-    }
-    .runner.celebrate {
-      animation: runner-celebrate .5s ease-in-out infinite alternate;
-    }
-    .runner svg {
+    .marathon {
+      display: flex;
+      align-items: flex-end;
+      gap: 18px;
       width: 100%;
-      height: auto;
-      fill: none;
-      stroke: var(--brand);
-      stroke-width: 3;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      filter: drop-shadow(0 0 12px rgba(96,165,250,.45));
     }
-    @keyframes runner-bounce {
-      0%,100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
+    .marker {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
     }
-    @keyframes runner-celebrate {
-      0% { transform: translateY(-4px) rotate(-3deg); }
-      100% { transform: translateY(4px) rotate(3deg); }
+    .marker svg {
+      width: 64px;
+      height: 64px;
+      filter: drop-shadow(0 8px 18px rgba(15,23,42,.55));
     }
-    .progress {
+    .track {
+      flex: 1;
+      position: relative;
+      padding-top: 28px;
+    }
+    .slots {
       display: flex;
       width: 100%;
       gap: 10px;
@@ -128,43 +124,67 @@
       background: linear-gradient(90deg,#34d399,#22c55e);
       transform: scaleX(0);
       transform-origin: left;
-      transition: transform .3s ease;
+      transition: transform .25s ease;
     }
     .slot.filled::after {
       transform: scaleX(1);
     }
+    .runner {
+      position: absolute;
+      top: -4px;
+      left: 2%;
+      width: 130px;
+      pointer-events: none;
+      animation: runner-bounce 1s ease-in-out infinite;
+      transition: left .35s ease;
+      transform: translate(-50%, 0);
+      filter: drop-shadow(0 0 12px rgba(96,165,250,.45));
+    }
+    .runner.paused { animation-play-state: paused; opacity: .7; }
+    .runner.celebrate { animation: runner-celebrate .5s ease-in-out infinite alternate; }
+    .runner svg {
+      width: 100%;
+      height: auto;
+      fill: none;
+      stroke: var(--brand);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    @keyframes runner-bounce {
+      0%,100% { transform: translate(-50%, 0); }
+      50% { transform: translate(-50%, -8px); }
+    }
+    @keyframes runner-celebrate {
+      0% { transform: translate(-50%, -6px) rotate(-3deg); }
+      100% { transform: translate(-50%, 6px) rotate(3deg); }
+    }
 
     .word-display {
       margin: 24px 0;
-      padding: 28px;
+      padding: 30px;
       background: #0a0f1d;
       border:1px dashed rgba(148,163,184,.25);
       border-radius: 20px;
       text-align: center;
     }
     .word-display .kana {
-      font-size: clamp(32px, 4vw, 48px);
+      font-size: clamp(36px, 5vw, 56px);
       font-weight: 800;
-    }
-    .word-display .roma {
-      font-size: 16px;
-      color: var(--muted);
-      letter-spacing: .12em;
-      margin-top: 8px;
-      text-transform: lowercase;
+      letter-spacing: .05em;
     }
 
     input[type="text"] {
       width: 100%;
       padding: 16px 18px;
-      font-size: 18px;
+      font-size: 20px;
       color: #0b1220;
-      background: #eef2ff;
+      background: #fdf2f8;
       border: none;
       border-radius: 14px;
       outline: none;
     }
-    input[disabled] { opacity:.6; }
+    input[disabled] { opacity:.65; cursor: not-allowed; }
 
     .controls {
       display: flex;
@@ -202,9 +222,31 @@
       gap: 12px;
       flex-wrap: wrap;
     }
+
+    .countdown {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(48px, 8vw, 120px);
+      font-weight: 800;
+      color: #f8fafc;
+      background: rgba(15,23,42,.85);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+    }
+    .countdown.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
     @media (max-width: 640px){
       .wrap { padding: 16px; }
-      .card { padding: 20px; }
+      .card { padding: 22px; }
+      .runner { width: 110px; }
+      .marker svg { width: 50px; height: 50px; }
     }
   </style>
 </head>
@@ -213,8 +255,8 @@
     <div class="card">
       <h1>フルーツ・タイピング <span class="badge">3問連続クリアのタイムを計測</span></h1>
       <div class="sub">
-        ひらがなで表示されるフルーツ名をローマ字で入力。正しく打てば即座に次の単語が出現します。<br>
-        3問正解するまでのタイムアタックに挑戦しましょう！
+        ひらがなで表示されるフルーツ名を、<strong>ひらがな入力</strong>でそのまま打ち込むタイピングゲーム。<br>
+        「スタート」または Enter でカウントダウン（3・2・1）が始まり、3問正解するまでの時間を競います。
       </div>
 
       <div class="row" id="stats">
@@ -229,49 +271,72 @@
       </div>
 
       <div class="progress-area">
-        <div class="runner paused" id="runner" aria-hidden="true">
-          <svg viewBox="0 0 80 60">
-            <circle cx="48" cy="12" r="8"></circle>
-            <path d="M32 54 L42 32 L32 26" />
-            <path d="M42 32 L56 42" />
-            <path d="M42 32 L30 40" />
-            <path d="M42 20 L28 28" />
-            <path d="M42 20 L56 24" />
-          </svg>
-        </div>
-        <div class="progress" id="progress" aria-label="クリア状況（3本のチャージバー）">
-          <span class="slot"></span>
-          <span class="slot"></span>
-          <span class="slot"></span>
+        <div class="marathon" aria-label="3区間のマラソントラック">
+          <div class="marker marker-start">
+            <svg viewBox="0 0 64 64" role="img" aria-label="スタート地点">
+              <rect x="10" y="10" width="6" height="46" fill="#38bdf8"></rect>
+              <rect x="48" y="10" width="6" height="46" fill="#38bdf8"></rect>
+              <rect x="16" y="10" width="32" height="14" rx="4" fill="#22c55e"></rect>
+              <path d="M16 26 L48 26" stroke="#38bdf8" stroke-width="2"></path>
+            </svg>
+            <span>スタート</span>
+          </div>
+          <div class="track">
+            <div class="runner paused" id="runner" aria-hidden="true">
+              <svg viewBox="0 0 80 60">
+                <circle cx="48" cy="12" r="8"></circle>
+                <path d="M32 54 L42 32 L32 26" />
+                <path d="M42 32 L56 42" />
+                <path d="M42 32 L30 40" />
+                <path d="M42 20 L28 28" />
+                <path d="M42 20 L56 24" />
+              </svg>
+            </div>
+            <div class="progress slots" id="progress" aria-label="クリア状況（3区間）">
+              <span class="slot"></span>
+              <span class="slot"></span>
+              <span class="slot"></span>
+            </div>
+          </div>
+          <div class="marker marker-goal">
+            <svg viewBox="0 0 64 64" role="img" aria-label="ゴール">
+              <rect x="14" y="8" width="6" height="48" fill="#fbbf24"></rect>
+              <path d="M20 10 L50 10 L42 22 L50 34 L20 34 Z" fill="#f43f5e" opacity=".9"></path>
+              <path d="M20 10 L36 10 L28 22 L36 34 L20 34 Z" fill="#fef3c7" opacity=".8"></path>
+            </svg>
+            <span>ゴール</span>
+          </div>
         </div>
       </div>
 
       <div class="word-display">
         <div class="kana" id="currentKana">---</div>
-        <div class="roma" id="currentRoma">---</div>
       </div>
 
       <input
         id="input"
         type="text"
-        inputmode="latin"
+        lang="ja"
+        inputmode="kana"
         autocomplete="off"
-        placeholder="正しくローマ字で入力すると自動で次の単語へ"
+        placeholder="例：りんご → りんご（PCでも日本語入力・ひらがなモードで）"
+        disabled
       />
       <div class="hint">
-        日本語IMEはオフ（英字モード）でプレイしてください。3本のバーがすべて埋まるまでの時間を競います。
+        PCでもスマホでも日本語入力（ひらがな）に切り替えてください。答えのひらがなと完全に一致したら自動で次の問題に進みます。
       </div>
 
       <div class="controls">
         <button class="primary" id="btnStart">スタート</button>
         <button id="btnRestart" disabled>リスタート</button>
-        <button id="btnShuffle">単語入れ替え</button>
       </div>
 
       <div class="footer">
-        <div>単語リスト: フルーツ（ひらがな & ローマ字）</div>
-        <div>拡張アイデア：濁音・拗音対応、ルール追加、ラップ計測など</div>
+        <div>単語リスト: フルーツ（ひらがな）</div>
+        <div>拡張アイデア：濁音・拗音やラップ計測、語彙カスタムなど</div>
       </div>
+
+      <div class="countdown" id="countdown" aria-live="assertive"></div>
     </div>
   </div>
 
@@ -302,6 +367,7 @@
     ];
 
     const GOAL_COUNT = 3;
+    const RUNNER_POSITIONS = ["2%", "38%", "70%", "100%"];
     const state = {
       words: [],
       idx: 0,
@@ -309,6 +375,8 @@
       finished: false,
       timerId: null,
       correct: 0,
+      countdownActive: false,
+      countdownTimeouts: [],
     };
 
     const $ = (sel) => document.querySelector(sel);
@@ -332,9 +400,8 @@
 
     function showCurrentWord(){
       ensureWordPool();
-      const current = state.words[state.idx] || { kana: "---", roma: "---" };
+      const current = state.words[state.idx] || { kana: "---" };
       $("#currentKana").textContent = current.kana;
-      $("#currentRoma").textContent = current.roma;
     }
 
     function updateProgress(){
@@ -342,6 +409,13 @@
       document.querySelectorAll(".progress .slot").forEach((slot, idx) => {
         slot.classList.toggle("filled", idx < state.correct);
       });
+    }
+
+    function updateRunnerPosition(){
+      const runner = $("#runner");
+      if(!runner) return;
+      const idx = Math.min(state.correct, RUNNER_POSITIONS.length - 1);
+      runner.style.left = RUNNER_POSITIONS[idx];
     }
 
     function updateStats(){
@@ -352,7 +426,7 @@
     function setRunnerState(){
       const runner = $("#runner");
       if(!runner) return;
-      runner.classList.toggle("paused", !state.startedAt);
+      runner.classList.toggle("paused", !state.startedAt || state.finished);
       runner.classList.toggle("celebrate", state.finished);
     }
 
@@ -362,31 +436,68 @@
       }
     }
 
-    function init(customWords = null){
-      const seed = customWords ? customWords.slice() : shuffle(FRUITS);
-      state.words = seed;
+    function clearCountdown(){
+      state.countdownTimeouts.forEach((id)=>clearTimeout(id));
+      state.countdownTimeouts = [];
+      state.countdownActive = false;
+      const overlay = $("#countdown");
+      overlay.classList.remove("show");
+      overlay.textContent = "";
+    }
+
+    function init(){
+      clearInterval(state.timerId);
+      state.timerId = null;
+      clearCountdown();
+      state.words = shuffle(FRUITS);
       state.idx = 0;
       state.startedAt = null;
       state.finished = false;
       state.correct = 0;
-      clearInterval(state.timerId);
-      state.timerId = null;
       $("#input").value = "";
-      $("#input").disabled = false;
+      $("#input").disabled = true;
+      $("#btnStart").disabled = false;
       $("#btnRestart").disabled = true;
       updateProgress();
       updateStats();
+      updateRunnerPosition();
       showCurrentWord();
       setRunnerState();
-      $("#input").focus();
     }
 
-    function start(){
-      if(state.startedAt || state.finished) return;
+    function beginRun(){
+      if(state.startedAt) return;
       state.startedAt = Date.now();
       state.timerId = setInterval(tick, 100);
+      $("#input").disabled = false;
+      $("#input").focus();
       $("#btnRestart").disabled = false;
       setRunnerState();
+    }
+
+    function startCountdown(){
+      if(state.countdownActive || state.startedAt || state.finished) return;
+      state.countdownActive = true;
+      $("#btnStart").disabled = true;
+      const overlay = $("#countdown");
+      const steps = ["3","2","1"];
+      overlay.textContent = "";
+      overlay.classList.add("show");
+      steps.forEach((val, idx) => {
+        const id = setTimeout(() => {
+          overlay.textContent = val;
+          if(idx === steps.length - 1){
+            const startId = setTimeout(() => {
+              overlay.classList.remove("show");
+              overlay.textContent = "";
+              state.countdownActive = false;
+              beginRun();
+            }, 800);
+            state.countdownTimeouts.push(startId);
+          }
+        }, idx * 800);
+        state.countdownTimeouts.push(id);
+      });
     }
 
     function handleCorrect(){
@@ -394,10 +505,20 @@
       state.idx++;
       $("#input").value = "";
       updateProgress();
+      updateRunnerPosition();
       if(state.correct >= GOAL_COUNT){
         finish();
       } else {
         showCurrentWord();
+      }
+    }
+
+    function handleInput(){
+      if(!state.startedAt || state.finished) return;
+      const typed = $("#input").value.trim();
+      const current = state.words[state.idx] || { kana: "" };
+      if(typed && typed === current.kana){
+        handleCorrect();
       }
     }
 
@@ -409,36 +530,23 @@
       $("#input").disabled = true;
       updateStats();
       setRunnerState();
+      updateRunnerPosition();
       const total = state.startedAt ? fmt((Date.now() - state.startedAt)/1000, 1) : "0.0";
       setTimeout(()=>alert(`🏁 3問クリア！タイム: ${total}s`), 80);
     }
 
-    function handleInput(){
-      if(state.finished) return;
-      const typed = $("#input").value.trim().toLowerCase();
-      const current = state.words[state.idx] || { roma: "" };
-      if(typed.length && !state.startedAt){
-        start();
-      }
-      if(typed && typed === current.roma.toLowerCase()){
-        handleCorrect();
-      }
-    }
-
-    $("#btnStart").addEventListener("click", () => {
-      if(!state.startedAt){
-        start();
-        $("#input").focus();
-      }
-    });
-
-    $("#btnRestart").addEventListener("click", () => init());
-    $("#btnShuffle").addEventListener("click", () => init(shuffle(FRUITS)));
-
+    $("#btnStart").addEventListener("click", startCountdown);
+    $("#btnRestart").addEventListener("click", init);
     $("#input").addEventListener("input", handleInput);
     $("#input").addEventListener("keydown", (e) => {
       if(e.key === "Enter"){
         e.preventDefault();
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+      if(e.key === "Enter" && !state.startedAt && !state.countdownActive && !state.finished){
+        e.preventDefault();
+        startCountdown();
       }
     });
 
